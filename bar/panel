@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# PANEL_FONT_FAMILY="-*-terminus-bold-r-normal-*-32-*-*-*-c-*-*-2"
+PANEL_FONT_FAMILY="-*-roboto light-*-*-*-*-*-*-*-*-*-*-*-*"
+LEFT_GEO=853x37
+MID_GEO=854x37+853
+RIGHT_GEO=853x37+1707
+BG="#021b21"
+FG="#cfcfcf"
+
+#while true; do
+#    /home/arthur/Development/scripts/bar/clock | bar -g "$PANEL_GEO"  -f "$PANEL_FONT_FAMILY" -F $FG -B $BG -p
+#done
+#2464
+
+
+while true; do
+    # echo "* * * * * * * * * *" | dzen2 -geometry "$LEFT_GEO"  -fn "$PANEL_FONT_FAMILY" -fg $FG -bg $BG -p -ta l &
+    /home/arthur/Development/scripts/bar/workspaces &
+    /home/arthur/Development/scripts/bar/clock | dzen2 -geometry "$MID_GEO"  -fn "$PANEL_FONT_FAMILY" -fg $FG -bg $BG -p -ta c &
+    /home/arthur/Development/scripts/bar/battery.wifi | dzen2 -geometry "$RIGHT_GEO"  -fn "$PANEL_FONT_FAMILY" -fg $FG -bg $BG -p -ta r
+    killall dzen2
+done
+2464

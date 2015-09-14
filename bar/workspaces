@@ -1,0 +1,67 @@
+#!/bin/bash
+
+export BSPWM_SOCKET=/tmp/bspwm_0_0-socket
+## SETTINGS
+
+BAR_FIFO=/tmp/panel_fifo  # you should probably just leave this alone
+
+focus_fg=#021b21
+focus_bg=#cfcfcf
+unfocus_fg=#cfcfcf
+unfocus_bg=#021b21
+
+font="-*-roboto light-*-*-*-*-*-*-*-*-*-*-*-*"
+
+include_value=false
+
+
+## END SETTINGS
+
+modules() {
+# bspwm stats
+bspc control --subscribe > "$BAR_FIFO" &
+}
+
+
+parse-module-output() {
+    while read -r line ; do
+        wm_infos=""
+        IFS=':'
+        set -- ${line#?}
+        while (( $# > 0 )) ; do
+            item=$1
+            name=${item#?}
+            desk=" $name "
+            if [[ $name = "one" ]]; then
+                desk=""
+            fi
+            case $item in
+                O*)
+                wm_infos="$wm_infos^fg($focus_fg)^bg($focus_bg)$desk" ;;
+                F*)
+                wm_infos="$wm_infos^fg($focus_fg)^bg($focus_bg)$desk" ;;
+                U*)
+                wm_infos="$wm_infos^fg($focus_fg)^bg($focus_bg)$desk" ;;
+                o*)
+                wm_infos="$wm_infos^fg($unfocus_fg)^bg($unfocus_bg)$desk" ;;
+                f*)
+                wm_infos="$wm_infos^fg($unfocus_fg)^bg($unfocus_bg)$desk" ;;
+                u*)
+                wm_infos="$wm_infos^fg($unfocus_fg)^bg($unfocus_bg)$desk" ;;
+            esac
+            shift
+        done
+        echo "$wm_infos"
+    done
+ }
+
+[ -e "$BAR_FIFO" ] && rm "$BAR_FIFO"
+mkfifo "$BAR_FIFO"
+
+# run module commands
+modules &
+
+# pull it all together
+parse-module-output < "$BAR_FIFO" | dzen2 -p  -fn "$font"  -geometry 853x37 -ta l -bg $unfocus_bg | while read line; do eval "$line"; done &
+
+wait

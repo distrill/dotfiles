@@ -1,0 +1,103 @@
+#!/bin/bash
+
+ export BSPWM_SOCKET=/tmp/bspwm_0_0-socket
+
+ ## SETTINGS
+ BAR_FIFO=/tmp/panel_fifo  # you should probably just leave this alone
+ color_fg="#cfcfcf"     # bar foreground
+ color_bg="#021b21"     # bar background
+
+color_focus_fg="#021b21"
+color_focus_bg="#cfcfcf"
+color_unfocus_fg="#cfcfcf"
+color_unfocus_fg="#021b21"
+
+ # color_focus_fg="#ffF2F2F2"	  # focused & occupied
+ # color_focus_fg="#ffF2F2F2"	  # focused & empty
+ # color_focus_fg="#ffF2F2F2"	  # focused & urgent
+ # color_focus_bg="#ff9D9D9D"	  # unfocused & occupied
+ # color_focus_bg="#ff9D9D9D"	  # unfocused & empty
+ # color_focus_bg="#ff9D9D9D"	  # unfocused & urgent
+
+
+
+ font="-*-terminus-bold-r-normal-*-14-*-*-*-c-*-*-*"
+ geometry="700x20+930+1580" # in the format "<width>x<height>+<xoffset>+<yoffset>"
+
+ include_value=false
+
+
+ ## END SETTINGS
+
+ modules() {
+     bspc control --subscribe > "$BAR_FIFO" &
+ }
+
+
+ parse-module-output() {
+     while read -r line ; do
+         case $line in
+             v*)
+             # set up volume indicator
+             volume="$line" ;;
+             c*)
+             # set up clock
+             clock="${line#?}" ;;
+             d*)
+             # set up date
+             date="${line#?}" ;;
+             W*)
+             # set up tags
+             wm_infos=""
+             IFS=':'
+             set -- ${line#?}
+             while (( $# > 0 )) ; do
+                 item=$1
+                 name=${item#?}
+                 desk=" $name "
+                 case $item in
+                     O*)
+                     # focused occupied desktop
+                     wm_infos="$wm_infos%{F$color_focus_fg}%{A:bspc desktop -f $name:}$desk%{A}" ;;
+                     # wm_infos="$#" ;;
+                     F*)
+                     # focused empty desktop
+                     wm_infos="$wm_infos%{F$color_focus_fg}%{A:bspc desktop -f $name:}$desk%{A}" ;;
+                     # wm_infos="$item" ;;
+                     U*)
+                     # focused urgent desktop
+                     wm_infos="$wm_infos%{F$color_focus_fg}%{A:bspc desktop -f $name:}$desk%{A}" ;;
+                     o*)
+                     # occupied desktop
+                     wm_infos="$wm_infos%{F$color_focus_bg}%{A:bspc desktop -f $name:}$desk%{A}" ;;
+                     f*)
+                     # free desktop
+                     wm_infos="$wm_infos%{F$color_focus_bg}%{A:bspc desktop -f $name:}$desk%{A}" ;;
+                     u*)
+                     # urgent desktop
+                     wm_infos="$wm_infos%{F$color_focus_bg}%{A:bspc desktop -f $name:}$desk%{A}" ;;
+                 esac
+                 shift
+             done
+         esac
+         shift
+         echo "%{c}$wm_infos"
+     done
+ }
+
+ # prepare
+ if [[ $(pgrep -cx bard) -gt 1 ]]; then
+     echo "bar-aint-recursive is already running" >&2
+     exit 1
+ fi
+ trap 'trap - TERM; kill 0' INT TERM QUIT EXIT
+ [ -e "$BAR_FIFO" ] && rm "$BAR_FIFO"
+ mkfifo "$BAR_FIFO"
+
+ # run module commands
+ modules &
+
+ # pull it all together
+ parse-module-output < "$BAR_FIFO" | bar -p -B "$color_bg" -f "$font" -F "$color_fg" -g "$geometry" | while read line; do eval "$line"; done &
+
+ wait

@@ -1,0 +1,10 @@
+#!/usr/bin/bash
+Clock() {
+	DATE=$(date "+ %l:%M")
+	echo -n "$DATE"
+}
+
+while true; do
+	echo "$(Clock)"
+	sleep 1;
+done
