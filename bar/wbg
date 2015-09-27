@@ -1,4 +1,0 @@
-#! /bin/bash
-
-echo " " | bar -g 706x17+927+1583 -B "#ffababab" -p
-#/home/arthur/Development/scripts/bar/panel &

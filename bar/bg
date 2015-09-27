@@ -1,4 +1,0 @@
-#! /bin/bash
-
-echo " " | dzen2 -geometry 2560x40 -bg "#cfcfcf" -p &
-/home/arthur/Development/scripts/bar/panel

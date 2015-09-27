@@ -8,7 +8,7 @@ Battery() {
 	else
 		CHARGING=" "
 	fi
-	echo " /$BATTERY_CHARGE %/$CHARGING"
+	echo "    / $BATTERY_CHARGE% /$CHARGING"
 }
 
 Wifi() {
